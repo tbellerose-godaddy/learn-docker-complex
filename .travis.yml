@@ -1,0 +1,20 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t tbellerose/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true tbellerose/react-test npm test
+
+after_success:
+  - docker build -t tbellerose/multi-client ./client
+  - docker build -t tbellerose/multi-nginx ./nginx
+  - docker build -t tbellerose/multi-server ./server
+  - docker build -t tbellerose/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push tbellerose/multi-client
+  - docker push tbellerose/multi-nginx
+  - docker push tbellerose/multi-server
+  - docker push tbellerose/multi-worker
